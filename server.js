@@ -35,6 +35,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:5173",
+  "https://app.lanbethresolutions.co.uk",
   "http://localhost:5174",
   // add the real Lanbeth frontend URL(s) here once deployed, e.g.:
   // "https://portal.lanbethresolutions.com",
