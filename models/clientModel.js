@@ -19,7 +19,7 @@ const clientSchema = new mongoose.Schema(
     communicationPreference: { type: String },
     doctor: { type: String }, // shown on client card e.g. "Dr. Sarah Johnson"
     status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
-
+postCode: { type: String },
     emergencyContact: {
       familyMemberName: String,
       relationship: String,

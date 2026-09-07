@@ -55,7 +55,8 @@ const router = express.Router();
 router.use(protect);
 
 // Admin: manage clients list
-router.get("/", authorize("admin"), getClients);
+// router.get("/", authorize("admin"), getClients);
+router.get("/", authorize("admin", "staff"), getClients);
 router.post("/", authorize("admin"), createClient);
 
 // Admin + Staff: view profile (frontend enforces staff = read-only on edit fields)

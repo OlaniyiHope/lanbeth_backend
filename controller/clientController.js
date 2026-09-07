@@ -213,61 +213,114 @@ const generateClientId = async () => {
 
 // @route GET /api/clients
 // @access Admin
+// export const getClients = async (req, res) => {
+//   try {
+//     const {
+//       search,
+//       status,
+//       page = 1,
+//       limit = 20,
+//     } = req.query;
+
+//     const query = {};
+
+//     if (
+//       status &&
+//       status !== "All Status" &&
+//       status !== "All Clients"
+//     ) {
+//       query.status = status;
+//     }
+
+//     if (search) {
+//       query.$or = [
+//         {
+//           fullName: {
+//             $regex: search,
+//             $options: "i",
+//           },
+//         },
+//         {
+//           email: {
+//             $regex: search,
+//             $options: "i",
+//           },
+//         },
+//         {
+//           clientId: {
+//             $regex: search,
+//             $options: "i",
+//           },
+//         },
+//       ];
+//     }
+
+//     const skip =
+//       (Number(page) - 1) * Number(limit);
+
+//     const [clients, total] = await Promise.all([
+//       Client.find(query)
+//         .populate(
+//           "assignedStaff",
+//           "fullName email phone role jobTitle"
+//         )
+//         .skip(skip)
+//         .limit(Number(limit))
+//         .sort({ createdAt: -1 }),
+
+//       Client.countDocuments(query),
+//     ]);
+
+//     return res.status(200).json({
+//       clients,
+//       total,
+//       page: Number(page),
+//       totalPages: Math.ceil(
+//         total / Number(limit)
+//       ),
+//     });
+//   } catch (err) {
+//     console.error("Get clients error:", err);
+
+//     return res.status(500).json({
+//       message: "Server error",
+//       error: err.message,
+//     });
+//   }
+// };
+
+
 export const getClients = async (req, res) => {
   try {
-    const {
-      search,
-      status,
-      page = 1,
-      limit = 20,
-    } = req.query;
+    const { search, status, page = 1, limit = 20 } = req.query;
 
     const query = {};
 
-    if (
-      status &&
-      status !== "All Status" &&
-      status !== "All Clients"
-    ) {
+    // Staff only ever see clients assigned to them; admin sees everyone.
+    if (req.user.role === "staff") {
+      query.assignedStaff = req.user._id;
+    }
+
+    if (status && status !== "All Status" && status !== "All Clients") {
       query.status = status;
     }
 
     if (search) {
       query.$or = [
-        {
-          fullName: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          email: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          clientId: {
-            $regex: search,
-            $options: "i",
-          },
-        },
+        { fullName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { clientId: { $regex: search, $options: "i" } },
       ];
     }
 
-    const skip =
-      (Number(page) - 1) * Number(limit);
+    const skip = (Number(page) - 1) * Number(limit);
 
     const [clients, total] = await Promise.all([
       Client.find(query)
-        .populate(
-          "assignedStaff",
-          "fullName email phone role jobTitle"
-        )
+        .populate("assignedStaff", "fullName email phone role jobTitle")
         .skip(skip)
         .limit(Number(limit))
         .sort({ createdAt: -1 }),
-
       Client.countDocuments(query),
     ]);
 
@@ -275,20 +328,13 @@ export const getClients = async (req, res) => {
       clients,
       total,
       page: Number(page),
-      totalPages: Math.ceil(
-        total / Number(limit)
-      ),
+      totalPages: Math.ceil(total / Number(limit)),
     });
   } catch (err) {
     console.error("Get clients error:", err);
-
-    return res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 // @route POST /api/clients
 // @access Admin
 export const createClient = async (req, res) => {
