@@ -5,6 +5,7 @@ import {
   getReportsByDate,
   getAllReportDates,
   getReportById,
+  getMyReports
 } from "../controller/reportController.js";
 
 const router = express.Router({ mergeParams: true });
@@ -18,6 +19,7 @@ router.get("/", authorize("admin", "staff"), (req, res, next) => {
   return getAllReportDates(req, res, next);
 });
 
+router.get("/my-report", authorize("admin", "staff"), getMyReports);
 router.get("/single/:reportId", authorize("admin", "staff"), getReportById);
 
 export default router;

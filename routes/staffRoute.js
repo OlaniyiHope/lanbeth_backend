@@ -211,129 +211,136 @@
 
 // export default router;
 
-import express from "express";
+  import express from "express";
 
-import { protect, authorize } from "../middleware/authMiddleware.js";
+  import { protect, authorize } from "../middleware/authMiddleware.js";
 
-import {
-  getStaffList,
-  createStaff,
-  getStaffById,
-  updateStaff,
-  uploadStaffDocument,
-  getStaffDocuments,
-  getStaffExpiringDocuments,
-  getAllExpiryAlerts,
-  getStaffDashboard,
-  getMyProfile,
-  getMyClients,
-} from "../controller/staffController.js";
+  import {
+    getStaffList,
+    createStaff,
+    getStaffById,
+    updateStaff,
+    uploadStaffDocument,
+    getStaffDocuments,
+    getStaffExpiringDocuments,
+    getAllExpiryAlerts,
+    getStaffDashboard,
+    getMyProfile,
+    getMyClients,
+    deleteStaff
+  } from "../controller/staffController.js";
 
-const router = express.Router();
-
-
-// =====================================================
-// AUTHENTICATION
-// =====================================================
-
-router.use(protect);
+  const router = express.Router();
 
 
-// =====================================================
-// STAFF ROUTES
-// =====================================================
+  // =====================================================
+  // AUTHENTICATION
+  // =====================================================
 
-// Logged-in staff member's dashboard
-router.get(
-  "/dashboard",
-  authorize("staff"),
-  getStaffDashboard
-);
+  router.use(protect);
 
 
-// Logged-in staff member's profile
-router.get(
-  "/me/profile",
-  authorize("staff"),
-  getMyProfile
-);
+  // =====================================================
+  // STAFF ROUTES
+  // =====================================================
+
+  // Logged-in staff member's dashboard
+  router.get(
+    "/dashboard",
+    authorize("staff"),
+    getStaffDashboard
+  );
 
 
-// Logged-in staff member's assigned clients
-router.get(
-  "/my-clients",
-  authorize("staff"),
-  getMyClients
-);
+  // Logged-in staff member's profile
+  router.get(
+    "/me/profile",
+    authorize("staff"),
+    getMyProfile
+  );
 
 
-// =====================================================
-// ADMIN ROUTES
-// =====================================================
-
-// Get all staff
-router.get(
-  "/",
-  authorize("admin"),
-  getStaffList
-);
+  // Logged-in staff member's assigned clients
+  router.get(
+    "/my-clients",
+    authorize("staff"),
+    getMyClients
+  );
 
 
-// Create staff
-router.post(
-  "/",
-  authorize("admin"),
-  createStaff
-);
+  // =====================================================
+  // ADMIN ROUTES
+  // =====================================================
+
+  // Get all staff
+  router.get(
+    "/",
+    authorize("admin"),
+    getStaffList
+  );
 
 
-// Expiry alerts
-// Must be before /:id
-router.get(
-  "/expiry-alerts",
-  authorize("admin"),
-  getAllExpiryAlerts
-);
+  // Create staff
+  router.post(
+    "/",
+    authorize("admin"),
+    createStaff
+  );
 
 
-// Get specific staff
-router.get(
+  // Expiry alerts
+  // Must be before /:id
+  router.get(
+    "/expiry-alerts",
+    authorize("admin"),
+    getAllExpiryAlerts
+  );
+
+
+  // Get specific staff
+  router.get(
+    "/:id",
+    authorize("admin"),
+    getStaffById
+  );
+
+
+  // Update specific staff
+  router.put(
+    "/:id",
+    authorize("admin"),
+    updateStaff
+  );
+
+
+  // Upload staff document
+  router.post(
+    "/:id/documents",
+    authorize("admin"),
+    uploadStaffDocument
+  );
+
+
+  // Get staff documents
+  router.get(
+    "/:id/documents",
+    authorize("admin"),
+    getStaffDocuments
+  );
+// Delete specific staff
+router.delete(
   "/:id",
   authorize("admin"),
-  getStaffById
+  deleteStaff
 );
 
 
-// Update specific staff
-router.put(
-  "/:id",
-  authorize("admin"),
-  updateStaff
-);
+  // Get expiring staff documents
+  router.get(
+    "/:id/documents/expiring",
+    authorize("admin"),
+    getStaffExpiringDocuments
+  );
 
 
-// Upload staff document
-router.post(
-  "/:id/documents",
-  authorize("admin"),
-  uploadStaffDocument
-);
-
-
-// Get staff documents
-router.get(
-  "/:id/documents",
-  authorize("admin"),
-  getStaffDocuments
-);
-
-
-// Get expiring staff documents
-router.get(
-  "/:id/documents/expiring",
-  authorize("admin"),
-  getStaffExpiringDocuments
-);
-
-
-export default router;
+  export default router;

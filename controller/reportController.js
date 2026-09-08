@@ -5,30 +5,70 @@ import Client from "../models/clientModel.js";
 // @access Staff, Admin
 // Note: per spec, "different staff must be able to submit report more than
 // once in a day" — so no uniqueness constraint on client+date+staff.
+// export const submitReport = async (req, res) => {
+//   try {
+//     const client = await Client.findById(req.params.id);
+//     if (!client) {
+//       return res.status(404).json({ message: "Client not found" });
+//     }
+
+//     const { reportDate } = req.body;
+//     if (!reportDate) {
+//       return res.status(400).json({ message: "reportDate is required" });
+//     }
+
+//     const report = await Report.create({
+//       ...req.body,
+//       client: req.params.id,
+//       staff: req.user._id, // from protect middleware
+//     });
+
+//     return res.status(201).json({ message: "Report submitted", report });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
+
 export const submitReport = async (req, res) => {
   try {
     const client = await Client.findById(req.params.id);
+
     if (!client) {
-      return res.status(404).json({ message: "Client not found" });
+      return res.status(404).json({
+        message: "Client not found",
+      });
     }
 
     const { reportDate } = req.body;
+
     if (!reportDate) {
-      return res.status(400).json({ message: "reportDate is required" });
+      return res.status(400).json({
+        message: "reportDate is required",
+      });
     }
 
     const report = await Report.create({
       ...req.body,
       client: req.params.id,
-      staff: req.user._id, // from protect middleware
+      staff: req.user._id,
     });
 
-    return res.status(201).json({ message: "Report submitted", report });
+    console.log("REPORT CREATED:", report._id);
+
+    return res.status(201).json({
+      message: "Report submitted",
+      report,
+    });
+
   } catch (err) {
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error("SUBMIT REPORT ERROR:", err);
+
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
-
 // @route  GET /api/clients/:id/reports?date=YYYY-MM-DD
 // @access Admin, Staff
 // Returns all reports for that client on a given date (multiple staff may
@@ -105,5 +145,34 @@ export const getReportById = async (req, res) => {
     return res.status(200).json({ report });
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+export const getMyReports = async (req, res) => {
+  try {
+    const filter = {};
+
+    // Staff should only see reports they submitted.
+    // Admin can see all reports.
+    if (req.user.role === "staff") {
+      filter.staff = req.user._id;
+    }
+
+    const reports = await Report.find(filter)
+      .populate("staff", "fullName role email")
+      .populate("client", "fullName clientId")
+      .sort({ reportDate: -1, createdAt: -1 });
+
+    return res.status(200).json({
+      reports,
+      total: reports.length,
+    });
+  } catch (err) {
+    console.error("GET MY REPORTS ERROR:", err);
+
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
