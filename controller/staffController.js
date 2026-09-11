@@ -883,46 +883,49 @@ export const getStaffExpiringDocuments = async (req, res) => {
 
 // @route  GET /api/staff/expiry-alerts
 // @access Admin
-export const getAllExpiryAlerts = async (req, res) => {
-  try {
-    const { range = 30 } = req.query;
+// export const getAllExpiryAlerts = async (req, res) => {
+//   try {
+//     const { range = 30 } = req.query;
 
-    const rangeDate = new Date();
-    rangeDate.setDate(rangeDate.getDate() + Number(range));
-    const now = new Date();
+//     const rangeDate = new Date();
+//     rangeDate.setDate(rangeDate.getDate() + Number(range));
+//     const now = new Date();
 
-    const staffList = await User.find({ role: "staff" }).select(
-      "fullName documents jobTitle"
-    );
+//     const staffList = await User.find({ role: "staff" }).select(
+//       "fullName documents jobTitle"
+//     );
 
-    const expiringSoon = [];
-    const expired = [];
+//     const expiringSoon = [];
+//     const expired = [];
 
-    staffList.forEach((staff) => {
-      staff.documents.forEach((doc) => {
-        if (!doc.expiryDate) return;
-        const entry = {
-          staffId: staff._id,
-          staffName: staff.fullName,
-          documentType: doc.documentType,
-          expiryDate: doc.expiryDate,
-          daysRemaining: Math.ceil((doc.expiryDate - now) / (1000 * 60 * 60 * 24)),
-        };
-        if (doc.expiryDate < now) {
-          expired.push(entry);
-        } else if (doc.expiryDate <= rangeDate) {
-          expiringSoon.push(entry);
-        }
-      });
-    });
+//     staffList.forEach((staff) => {
+//       staff.documents.forEach((doc) => {
+//         if (!doc.expiryDate) return;
+//         const entry = {
+//           staffId: staff._id,
+//           staffName: staff.fullName,
+//           documentType: doc.documentType,
+//           expiryDate: doc.expiryDate,
+//           daysRemaining: Math.ceil((doc.expiryDate - now) / (1000 * 60 * 60 * 24)),
+//         };
+//         if (doc.expiryDate < now) {
+//           expired.push(entry);
+//         } else if (doc.expiryDate <= rangeDate) {
+//           expiringSoon.push(entry);
+//         }
+//       });
+//     });
 
-    return res.status(200).json({
-      documentsExpiringSoon: expiringSoon.length,
-      expiredDocuments: expired.length,
-      expiringSoon,
-      expired,
-    });
-  } catch (err) {
-    return res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
+//     return res.status(200).json({
+//       documentsExpiringSoon: expiringSoon.length,
+//       expiredDocuments: expired.length,
+//       expiringSoon,
+//       expired,
+//     });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
+
+
+export const getAllExpiryAlerts = async (req, res) => { try { const staffMembers = await User.find({ role: "staff", "documents.0": { $exists: true }, }).select( "fullName name username email documents" ); const today = new Date(); today.setHours(0, 0, 0, 0); const alerts = []; staffMembers.forEach((staff) => { const staffName = staff.fullName || staff.name || staff.username || "Unknown Staff"; if (!Array.isArray(staff.documents)) { return; } staff.documents.forEach((document) => { /* * Documents without an expiry date cannot be * classified as expired/expiring. */ if (!document.expiryDate) { return; } const expiryDate = new Date( document.expiryDate ); if (Number.isNaN(expiryDate.getTime())) { return; } expiryDate.setHours(0, 0, 0, 0); const difference = expiryDate.getTime() - today.getTime(); const days = Math.ceil( difference / (1000 * 60 * 60 * 24) ); let status; /* * Already expired */ if (days < 0) { status = "Expired"; } /* * Expiring today or within 30 days */ else if (days <= 30) { status = "Expiring Soon"; } /* * More than 30 days remaining */ else { return; } alerts.push({ _id: document._id, staffId: staff._id, staffName, documentType: document.documentType || "Staff Document", fileName: document.fileName || null, fileKey: document.fileKey || null, expiryDate: document.expiryDate, uploadedAt: document.uploadedAt, days, status, }); }); }); /* * Put expired documents first, * then documents closest to expiry. */ alerts.sort((a, b) => { if ( a.status === "Expired" && b.status !== "Expired" ) { return -1; } if ( a.status !== "Expired" && b.status === "Expired" ) { return 1; } return ( new Date(a.expiryDate) - new Date(b.expiryDate) ); }); return res.status(200).json({ total: alerts.length, expiredCount: alerts.filter( (item) => item.status === "Expired" ).length, expiringSoonCount: alerts.filter( (item) => item.status === "Expiring Soon" ).length, alerts, }); } catch (error) { console.error( "GET ALL EXPIRY ALERTS ERROR:", error ); return res.status(500).json({ message: "Failed to load staff expiry alerts", error: error.message, }); } };
