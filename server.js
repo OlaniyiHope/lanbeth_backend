@@ -3,6 +3,14 @@ dotenv.config(); // must run before anything that reads process.env
 
 console.log("CWD:", process.cwd());
 console.log("MONGODB_URI loaded:", process.env.MONGODB_URI ? "yes" : "MISSING");
+
+
+console.log("AWS CONFIG:", {
+  AWS_REGION: process.env.AWS_REGION,
+  AWS_S3_BUCKET: process.env.AWS_S3_BUCKET,
+  HAS_ACCESS_KEY: Boolean(process.env.AWS_ACCESS_KEY_ID),
+  HAS_SECRET_KEY: Boolean(process.env.AWS_SECRET_ACCESS_KEY),
+});
 import express from "express";
 import cors from "cors";
 import { S3 } from "@aws-sdk/client-s3";

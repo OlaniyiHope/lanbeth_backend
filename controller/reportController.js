@@ -176,3 +176,56 @@ export const getMyReports = async (req, res) => {
     });
   }
 };
+
+// @route  DELETE /api/reports/:reportId
+// @access Admin, Staff
+// Staff can only delete reports they personally submitted.
+// Admin can delete any report.
+export const deleteReport = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.reportId);
+
+    if (!report) {
+      return res.status(404).json({
+        message: "Report not found",
+      });
+    }
+
+    // STAFF:
+    // Only allow the staff member who created the report to delete it.
+    if (req.user.role === "staff") {
+      if (String(report.staff) !== String(req.user._id)) {
+        return res.status(403).json({
+          message: "You can only delete reports you submitted",
+        });
+      }
+
+      // Optional protection:
+      // Do not allow staff to delete reports that have already been reviewed.
+      if (
+        report.status &&
+        report.status.toLowerCase() === "reviewed"
+      ) {
+        return res.status(403).json({
+          message: "Reviewed reports cannot be deleted",
+        });
+      }
+    }
+
+    await Report.findByIdAndDelete(req.params.reportId);
+
+    console.log("REPORT DELETED:", report._id);
+
+    return res.status(200).json({
+      message: "Report deleted successfully",
+      reportId: report._id,
+    });
+  } catch (err) {
+    console.error("DELETE REPORT ERROR:", err);
+
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
+  }
+};

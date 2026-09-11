@@ -55,28 +55,79 @@ const userSchema = new mongoose.Schema(
     // in the Edit Staff screenshot). Safe to leave unused for now.
     jobTitle: { type: String },
 // Staff document uploads (screens 16-19)
-    documents: [
-      {
-        documentType: {
-          type: String,
-          enum: [
-            "Immigration Status",
-            "Driver License",
-            "Supervision Note",
-            "Training Certificate",
-            "DBS",
-            "National Insurance",
-            "Work Permit",
-            "Other",
-          ],
-          required: true,
-        },
-        fileName: { type: String },
-        fileUrl: { type: String },
-        expiryDate: { type: Date },
-        uploadedAt: { type: Date, default: Date.now },
-      },
-    ],
+    // documents: [
+    //   {
+    //     documentType: {
+    //       type: String,
+    //       enum: [
+    //         "Immigration Status",
+    //         "Driver License",
+    //         "Supervision Note",
+    //         "Training Certificate",
+    //         "DBS",
+    //         "National Insurance",
+    //         "Work Permit",
+    //         "Other",
+    //       ],
+    //       required: true,
+    //     },
+    //     fileName: { type: String },
+    //     fileUrl: { type: String },
+    //     expiryDate: { type: Date },
+    //     uploadedAt: { type: Date, default: Date.now },
+    //   },
+    // ],
+
+documents: [
+  {
+    documentType: {
+      type: String,
+      enum: [
+        "NIN",
+        "Voter's Card",
+        "International Passport",
+        "Driver's License",
+        "Work Permit",
+        "Residence Permit",
+        "Training Certificate",
+        "First Aid Certificate",
+        "DBS Certificate",
+        "Medical Certificate",
+        "Care Certificate",
+        "Supervision Note",
+        "National Insurance",
+        "Immigration Status",
+        "Other",
+      ],
+      required: true,
+    },
+
+    fileName: {
+      type: String,
+      required: true,
+    },
+
+    // S3 object key
+    fileKey: {
+      type: String,
+      required: true,
+    },
+
+    // Optional legacy/display URL
+    fileUrl: {
+      type: String,
+    },
+
+    expiryDate: {
+      type: Date,
+    },
+
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+],
     status: {
       type: String,
       enum: ["active", "inactive"],

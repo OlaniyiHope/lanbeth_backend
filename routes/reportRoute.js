@@ -5,7 +5,8 @@ import {
   getReportsByDate,
   getAllReportDates,
   getReportById,
-  getMyReports
+  getMyReports,
+  deleteReport
 } from "../controller/reportController.js";
 
 const router = express.Router({ mergeParams: true });
@@ -21,5 +22,9 @@ router.get("/", authorize("admin", "staff"), (req, res, next) => {
 
 router.get("/my-report", authorize("admin", "staff"), getMyReports);
 router.get("/single/:reportId", authorize("admin", "staff"), getReportById);
-
+router.delete(
+  "/single/:reportId",
+  authorize("admin", "staff"),
+  deleteReport
+);
 export default router;
