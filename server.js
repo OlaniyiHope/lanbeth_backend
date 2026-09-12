@@ -69,7 +69,7 @@ app.use("/api/clients", clientRoute);
 app.use("/api/report", reportRoute);
 app.use("/api/reports", reportGlobalRoute);
 app.use("/api/staff", staffRoute);
-app.use("/api/policy", policyRoute);
+app.use("/api/policies", policyRoute);
 
 
 app.get("/", (req, res) => {
