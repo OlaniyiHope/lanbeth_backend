@@ -4,24 +4,61 @@ const policySchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true, // e.g. "ACCESS TO RECORDS AND FILES", "AUDIT", "GDPR"
+      required: true,
       trim: true,
     },
-    fileName: { type: String, required: true },
-    fileUrl: { type: String, required: true },
+
+    policyType: {
+      type: String,
+      required: true,
+      enum: [
+        "Policy",
+        "Procedure",
+        "Guideline",
+        "Protocol",
+        "Other",
+      ],
+      default: "Policy",
+    },
+
+    description: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    fileName: {
+      type: String,
+      required: true,
+    },
+
+    fileKey: {
+      type: String,
+      required: true,
+    },
+
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
-    // Tracks which staff have marked this policy as read (screen: "Mark as Read")
+
     readBy: [
       {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        readAt: { type: Date, default: Date.now },
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        readAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 export default mongoose.model("Policy", policySchema);

@@ -18,6 +18,7 @@ import connectDB from "./config/db2.js";
 import authRoutes from "./routes/authRoutes.js";
 import clientRoute from "./routes/clientRoute.js";
 import reportRoute from "./routes/reportRoute.js";
+import reportGlobalRoute from "./routes/reportGlobalRoute.js";
 import staffRoute from "./routes/staffRoute.js";
 import policyRoute from "./routes/policyRoute.js";
 // import clientRoutes from "./routes/clientRoutes.js";
@@ -66,6 +67,7 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientRoute);
 app.use("/api/report", reportRoute);
+app.use("/api/reports", reportGlobalRoute);
 app.use("/api/staff", staffRoute);
 app.use("/api/policy", policyRoute);
 

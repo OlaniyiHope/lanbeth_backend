@@ -28,7 +28,22 @@ import Client from "../models/clientModel.js";
 //     return res.status(500).json({ message: "Server error", error: err.message });
 //   }
 // };
+export const getReportCount = async (req, res) => {
+  try {
+    const total = await Report.countDocuments();
 
+    return res.status(200).json({
+      total,
+    });
+  } catch (error) {
+    console.error("GET REPORT COUNT ERROR:", error);
+
+    return res.status(500).json({
+      message: "Failed to get report count",
+      error: error.message,
+    });
+  }
+};
 export const submitReport = async (req, res) => {
   try {
     const client = await Client.findById(req.params.id);

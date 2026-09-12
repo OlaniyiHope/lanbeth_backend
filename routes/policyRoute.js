@@ -1,5 +1,10 @@
 import express from "express";
-import { protect, authorize } from "../middleware/authMiddleware.js";
+
+import {
+  protect,
+  authorize,
+} from "../middleware/authMiddleware.js";
+
 import {
   getAllPolicies,
   uploadPolicy,
@@ -9,20 +14,87 @@ import {
   markPolicyAsRead,
 } from "../controller/policyController.js";
 
+import uploadPolicyDocument from "../middleware/uploadPolicyDocument.js";
+
 const router = express.Router();
 
 router.use(protect);
 
-// All three roles can view + mark as read
-router.get("/", authorize("admin", "staff", "policy"), getAllPolicies);
-router.get("/:id", authorize("admin", "staff", "policy"), getPolicyById);
-router.post("/:id/mark-as-read", authorize("admin", "staff", "policy"), markPolicyAsRead);
 
-// Admin only: upload + edit
-router.post("/", authorize("admin"), uploadPolicy);
-router.put("/:id", authorize("admin"), updatePolicy);
+/*
+|--------------------------------------------------------------------------
+| VIEW POLICIES
+|--------------------------------------------------------------------------
+| Admin, staff and policy users can view.
+*/
+router.get(
+  "/",
+  authorize("admin", "staff", "policy"),
+  getAllPolicies
+);
 
-// Admin + Policy-user can delete (per User_Policy.pdf)
-router.delete("/:id", authorize("admin", "policy"), deletePolicy);
+
+/*
+|--------------------------------------------------------------------------
+| UPLOAD POLICY
+|--------------------------------------------------------------------------
+| Admin and policy users can upload.
+*/
+router.post(
+  "/",
+  authorize("admin", "policy"),
+  uploadPolicyDocument.single("file"),
+  uploadPolicy
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| SINGLE POLICY
+|--------------------------------------------------------------------------
+*/
+router.get(
+  "/:id",
+  authorize("admin", "staff", "policy"),
+  getPolicyById
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| MARK AS READ
+|--------------------------------------------------------------------------
+*/
+router.post(
+  "/:id/mark-as-read",
+  authorize("admin", "staff", "policy"),
+  markPolicyAsRead
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| UPDATE
+|--------------------------------------------------------------------------
+| Admin only.
+*/
+router.put(
+  "/:id",
+  authorize("admin"),
+  updatePolicy
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| DELETE
+|--------------------------------------------------------------------------
+| Admin and policy users.
+*/
+router.delete(
+  "/:id",
+  authorize("admin", "policy"),
+  deletePolicy
+);
 
 export default router;
