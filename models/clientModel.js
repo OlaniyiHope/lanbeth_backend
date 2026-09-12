@@ -56,14 +56,47 @@ postCode: { type: String },
       },
     ],
 
-    documents: [
-      {
-        fileName: String,
-        fileUrl: String,
-        uploadedAt: { type: Date, default: Date.now },
-      },
-    ],
+  documents: [
+  {
+    documentType: {
+      type: String,
+      enum: [
+        "Care Plan",
+        "Identity Document",
+        "Medical Record",
+        "Medication Record",
+        "Assessment",
+        "Support Plan",
+        "Consent Form",
+        "Risk Assessment",
+        "Training Record",
+        "Other",
+      ],
+      required: true,
+    },
 
+    fileName: {
+      type: String,
+      required: true,
+    },
+
+    // Private S3 object key
+    fileKey: {
+      type: String,
+      required: true,
+    },
+
+    // Optional legacy/display URL
+    fileUrl: {
+      type: String,
+    },
+
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+],
     assignedStaff: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // screen "Assign client"
   },
   { timestamps: true }

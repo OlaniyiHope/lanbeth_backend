@@ -46,9 +46,10 @@ import {
   addClientDocument,
   deleteClientDocument,
   assignStaffToClient,
+  getClientDocuments
 } from "../controller/clientController.js";
 import reportRoute from "./reportRoute.js"; // <-- new import
-
+import uploadClientDocumentFile from "../middleware/uploadClientDocument.js";
 const router = express.Router();
 
 // All client routes require login
@@ -61,13 +62,22 @@ router.post("/", authorize("admin"), createClient);
 
 // Admin + Staff: view profile (frontend enforces staff = read-only on edit fields)
 router.get("/:id", authorize("admin", "staff"), getClientById);
-
+router.get(
+  "/:id/documents",
+  authorize("admin"),
+  getClientDocuments
+);
 // Admin only: edit / delete
 router.put("/:id", authorize("admin"), updateClient);
 router.delete("/:id", authorize("admin"), deleteClient);
 
 // Admin only: documents
-router.post("/:id/documents", authorize("admin"), addClientDocument);
+router.post(
+  "/:id/documents",
+  authorize("admin"),
+  uploadClientDocumentFile.single("file"),
+  addClientDocument
+);
 router.delete("/:id/documents/:docId", authorize("admin"), deleteClientDocument);
 
 // Admin only: assign staff to client
