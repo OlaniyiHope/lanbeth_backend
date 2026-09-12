@@ -64,7 +64,7 @@ router.post("/", authorize("admin"), createClient);
 router.get("/:id", authorize("admin", "staff"), getClientById);
 router.get(
   "/:id/documents",
-  authorize("admin"),
+  authorize("admin", "staff"),
   getClientDocuments
 );
 // Admin only: edit / delete
