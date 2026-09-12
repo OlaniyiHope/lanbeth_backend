@@ -808,27 +808,117 @@ export const deleteStaff = async (req, res) => {
 
 // @route  POST /api/staff/:id/documents
 // @access Admin
+// export const uploadStaffDocument = async (req, res) => {
+//   try {
+//     const { documentType, fileName, fileUrl, expiryDate } = req.body;
+
+//     if (!documentType || !fileName || !fileUrl) {
+//       return res.status(400).json({
+//         message: "documentType, fileName and fileUrl are required",
+//       });
+//     }
+
+//     const staff = await User.findOne({ _id: req.params.id, role: "staff" });
+//     if (!staff) {
+//       return res.status(404).json({ message: "Staff not found" });
+//     }
+
+//     staff.documents.push({ documentType, fileName, fileUrl, expiryDate });
+//     await staff.save();
+
+//     return res.status(201).json({ message: "Document uploaded", documents: staff.documents });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
+
+// @route  POST /api/staff/:id/documents
+// @access Admin
 export const uploadStaffDocument = async (req, res) => {
   try {
-    const { documentType, fileName, fileUrl, expiryDate } = req.body;
+    const { documentType, expiryDate } = req.body;
 
-    if (!documentType || !fileName || !fileUrl) {
+    // ---------------------------------------------
+    // Validate document type
+    // ---------------------------------------------
+    if (!documentType) {
       return res.status(400).json({
-        message: "documentType, fileName and fileUrl are required",
+        message: "Document type is required",
       });
     }
 
-    const staff = await User.findOne({ _id: req.params.id, role: "staff" });
-    if (!staff) {
-      return res.status(404).json({ message: "Staff not found" });
+    // ---------------------------------------------
+    // Validate uploaded file
+    // ---------------------------------------------
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Please upload a PDF document",
+      });
     }
 
-    staff.documents.push({ documentType, fileName, fileUrl, expiryDate });
+    // ---------------------------------------------
+    // Find staff member
+    // ---------------------------------------------
+    const staff = await User.findOne({
+      _id: req.params.id,
+      role: "staff",
+    });
+
+    if (!staff) {
+      return res.status(404).json({
+        message: "Staff not found",
+      });
+    }
+
+    // ---------------------------------------------
+    // Build document from Multer/S3 file
+    // ---------------------------------------------
+    const document = {
+      documentType,
+      fileName: req.file.originalname,
+      fileKey: req.file.key,
+      fileUrl: req.file.location || null,
+      expiryDate: expiryDate || undefined,
+      uploadedAt: new Date(),
+    };
+
+    // ---------------------------------------------
+    // Save document to staff profile
+    // ---------------------------------------------
+    staff.documents.push(document);
+
     await staff.save();
 
-    return res.status(201).json({ message: "Document uploaded", documents: staff.documents });
+    // Get the document that MongoDB just created
+    const savedDocument =
+      staff.documents[staff.documents.length - 1];
+
+    // ---------------------------------------------
+    // Return saved document
+    // ---------------------------------------------
+    return res.status(201).json({
+      message: "Document uploaded successfully",
+
+      document: {
+        _id: savedDocument._id,
+        documentType: savedDocument.documentType,
+        fileName: savedDocument.fileName,
+        fileKey: savedDocument.fileKey,
+        fileUrl: savedDocument.fileUrl,
+        expiryDate: savedDocument.expiryDate,
+        uploadedAt: savedDocument.uploadedAt,
+      },
+    });
   } catch (err) {
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error(
+      "ADMIN STAFF DOCUMENT UPLOAD ERROR:",
+      err
+    );
+
+    return res.status(500).json({
+      message: "Failed to upload staff document",
+      error: err.message,
+    });
   }
 };
 

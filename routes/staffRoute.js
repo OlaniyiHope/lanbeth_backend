@@ -110,12 +110,17 @@ router.put(
   updateStaff
 );
 
+// router.post(
+//   "/:id/documents",
+//   authorize("admin"),
+//   uploadStaffDocument
+// );
 router.post(
   "/:id/documents",
   authorize("admin"),
+  uploadStaffDocumentFile.single("file"),
   uploadStaffDocument
 );
-
 router.get(
   "/:id/documents",
   authorize("admin"),
