@@ -275,11 +275,49 @@ export const updatePolicy = async (req, res) => {
  * DELETE POLICY
  * DELETE /api/policies/:id
  */
+// export const deletePolicy = async (req, res) => {
+//   try {
+//     const policy = await Policy.findById(
+//       req.params.id
+//     );
+
+//     if (!policy) {
+//       return res.status(404).json({
+//         message: "Policy not found.",
+//       });
+//     }
+
+//     // Delete PDF from S3 first
+//     if (policy.fileKey) {
+//       await s3.send(
+//         new DeleteObjectCommand({
+//           Bucket: BUCKET_NAME,
+//           Key: policy.fileKey,
+//         })
+//       );
+//     }
+
+//     // Delete MongoDB record
+//     await Policy.findByIdAndDelete(
+//       req.params.id
+//     );
+
+//     return res.status(200).json({
+//       message: "Policy deleted successfully.",
+//     });
+//   } catch (error) {
+//     console.error("DELETE POLICY ERROR:", error);
+
+//     return res.status(500).json({
+//       message: "Failed to delete policy.",
+//       error: error.message,
+//     });
+//   }
+// };
+
 export const deletePolicy = async (req, res) => {
   try {
-    const policy = await Policy.findById(
-      req.params.id
-    );
+    const policy = await Policy.findById(req.params.id);
 
     if (!policy) {
       return res.status(404).json({
@@ -287,20 +325,29 @@ export const deletePolicy = async (req, res) => {
       });
     }
 
-    // Delete PDF from S3 first
-    if (policy.fileKey) {
-      await s3.send(
-        new DeleteObjectCommand({
-          Bucket: BUCKET_NAME,
-          Key: policy.fileKey,
-        })
-      );
-    }
+    const fileKey = policy.fileKey;
 
-    // Delete MongoDB record
-    await Policy.findByIdAndDelete(
-      req.params.id
-    );
+    // 1. Delete the MongoDB record first
+    await Policy.findByIdAndDelete(req.params.id);
+
+    // 2. Best-effort S3 cleanup (don't fail the request if this errors)
+    if (fileKey) {
+      try {
+        await s3.send(
+          new DeleteObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: fileKey,
+          })
+        );
+      } catch (s3Error) {
+        console.error(
+          "S3 DELETE FAILED (record already removed):",
+          fileKey,
+          s3Error.name,
+          s3Error.message
+        );
+      }
+    }
 
     return res.status(200).json({
       message: "Policy deleted successfully.",
@@ -314,8 +361,6 @@ export const deletePolicy = async (req, res) => {
     });
   }
 };
-
-
 /**
  * MARK POLICY AS READ
  * POST /api/policies/:id/mark-as-read
