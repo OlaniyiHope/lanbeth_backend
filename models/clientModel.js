@@ -26,7 +26,33 @@ postCode: { type: String },
       nextOfKinName: String,
       nextOfKinPhone: String,
     },
-
+professionals: [
+  {
+    role: {
+      type: String,
+      enum: [
+        "Dentist",
+        "Social Worker",
+        "GP",
+        "Pharmacy",
+        "Optician",
+        "Health Care Assessment",
+        "Placing Local Authority",
+        "College / University",
+        "Training / College / Personal Tutor",
+      ],
+      required: true,
+    },
+    name: String,
+    phone: String,
+    email: String,
+    address: String,
+    postCode: String,
+    surgeryAddress: String,
+    registeredDate: Date,
+  },
+],
+profilePhoto: { type: String }, // small resized image as a data URL
     medicalHistory: { type: String },
     allergies: { type: String }, // comma-separated per screen 6
 
