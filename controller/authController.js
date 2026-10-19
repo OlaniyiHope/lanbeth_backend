@@ -84,7 +84,40 @@ export const registerUser = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+export const updateCurrentUser = async (req, res) => {
+  try {
+    const { name, fullName, phone, profilePhoto } = req.body;
+    const update = {};
 
+    if (name || fullName) update.fullName = (fullName || name).trim();
+    if (phone !== undefined) update.phone = phone;
+    if (profilePhoto !== undefined) update.profilePhoto = profilePhoto;
+
+    const user = await User.findByIdAndUpdate(req.user._id, update, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "Profile updated",
+      user: {
+        id: user._id,
+        role: user.role,
+        fullName: user.fullName,
+        email: user.email,
+        username: user.username,
+        phone: user.phone,
+        profilePhoto: user.profilePhoto,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
 // @route  POST /api/auth/login
 // @access Public
 // export const loginUser = async (req, res) => {
@@ -161,17 +194,18 @@ export const loginUser = async (req, res) => {
 
     const token = generateToken(user);
 
-    return res.status(200).json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        role: user.role,
-        fullName: user.fullName,
-        email: user.email,
-        username: user.username,
-      },
-    });
+  return res.status(200).json({
+  message: "Login successful",
+  token,
+  user: {
+    id: user._id,
+    role: user.role,
+    fullName: user.fullName,
+    email: user.email,
+    username: user.username,
+    profilePhoto: user.profilePhoto,
+  },
+});
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
   }

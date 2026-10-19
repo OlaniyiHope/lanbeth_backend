@@ -528,6 +528,7 @@ export const getMyProfile = async (req, res) => {
         phone: staff.phone,
         gender: staff.gender,
         dateOfBirth: staff.dateOfBirth,
+         profilePhoto: staff.profilePhoto,
         role: staff.role,
         status: staff.status,
 
@@ -737,12 +738,18 @@ export const createStaff = async (req, res) => {
 
     return res.status(201).json({
       message: "Staff created",
-      staff: {
-        id: staff._id,
-        fullName: staff.fullName,
-        email: staff.email,
-        username: staff.username,
-      },
+  staff: {
+    _id: staff._id,
+    id: staff._id,
+    fullName: staff.fullName,
+    email: staff.email,
+    username: staff.username,
+    phone: staff.phone,
+    role: staff.role,
+    jobTitle: staff.jobTitle,
+    status: staff.status,
+    profilePhoto: staff.profilePhoto,
+  },
     });
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });

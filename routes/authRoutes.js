@@ -4,6 +4,7 @@ import {
   loginUser,
   getCurrentUser,
   logoutUser,
+  updateCurrentUser
 } from "../controller/authController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -18,6 +19,7 @@ router.post("/register",  registerUser);
 
 // Any logged-in user
 router.get("/me", protect, getCurrentUser);
+router.put("/me", protect, updateCurrentUser);  
 router.post("/logout", protect, logoutUser);
 
 export default router;
