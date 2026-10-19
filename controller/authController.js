@@ -229,3 +229,51 @@ export const getCurrentUser = async (req, res) => {
 export const logoutUser = async (req, res) => {
   return res.status(200).json({ message: "Logged out" });
 };
+
+
+export const createAdmin = async (req, res) => {
+  try {
+    const { fullName, username, email, password, phone, profilePhoto } = req.body;
+
+    if (!fullName || !username || !email || !password) {
+      return res.status(400).json({
+        message: "fullName, username, email and password are required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const existing = await User.findOne({
+      $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
+    });
+    if (existing) {
+      return res.status(409).json({ message: "Email or username already in use" });
+    }
+
+    const admin = await User.create({
+      fullName,
+      username,
+      email,
+      password,
+      phone,
+      profilePhoto,
+      role: "admin",
+    });
+
+    return res.status(201).json({
+      message: "Admin created",
+      admin: {
+        _id: admin._id,
+        fullName: admin.fullName,
+        email: admin.email,
+        username: admin.username,
+        role: admin.role,
+        profilePhoto: admin.profilePhoto,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};

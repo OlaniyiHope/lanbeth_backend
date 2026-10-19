@@ -4,7 +4,8 @@ import {
   loginUser,
   getCurrentUser,
   logoutUser,
-  updateCurrentUser
+  updateCurrentUser,
+  createAdmin
 } from "../controller/authController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -16,7 +17,7 @@ router.post("/login", loginUser);
 // Admin-only: create staff / policy / admin accounts
 // (matches the "+ Add Staff" flow on the Manage Staff screen, page 15/20)
 router.post("/register",  registerUser);
-
+router.post("/admins", createAdmin);
 // Any logged-in user
 router.get("/me", protect, getCurrentUser);
 router.put("/me", protect, updateCurrentUser);  
