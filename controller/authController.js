@@ -277,3 +277,60 @@ export const createAdmin = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+export const listAdmins = async (req, res) => {
+  try {
+    const admins = await User.find({ role: "admin" })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ admins });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+export const setAdminStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["active", "inactive"].includes(status)) {
+      return res.status(400).json({ message: "Status must be active or inactive" });
+    }
+
+    if (String(req.params.id) === String(req.user._id)) {
+      return res.status(400).json({ message: "You cannot change your own status" });
+    }
+
+    const admin = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "admin" },
+      { status },
+      { new: true }
+    ).select("-password");
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    return res.status(200).json({ message: "Admin updated", admin });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+export const deleteAdmin = async (req, res) => {
+  try {
+    if (String(req.params.id) === String(req.user._id)) {
+      return res.status(400).json({ message: "You cannot delete your own account" });
+    }
+
+    const admin = await User.findOneAndDelete({ _id: req.params.id, role: "admin" });
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    return res.status(200).json({ message: "Admin deleted" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
