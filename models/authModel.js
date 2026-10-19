@@ -50,7 +50,9 @@ const userSchema = new mongoose.Schema(
     workPermitExpiry: { type: Date },
     nextOfKinName: { type: String },
     nextOfKinPhone: { type: String },
-
+isArchived: { type: Boolean, default: false, index: true },
+archivedAt: { type: Date },
+archivedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     // Optional: only meaningful if client confirms this is a real 4th
     // permission tier rather than just a job title (see "Medical Supervisor"
     // in the Edit Staff screenshot). Safe to leave unused for now.

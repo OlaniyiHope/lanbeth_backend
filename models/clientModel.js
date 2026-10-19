@@ -155,7 +155,9 @@ const clientSchema = new mongoose.Schema(
     doctor: { type: String },
     status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
     postCode: { type: String },
-
+isArchived: { type: Boolean, default: false, index: true },
+archivedAt: { type: Date },
+archivedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     emergencyContact: {
       familyMemberName: String,
       relationship: String,

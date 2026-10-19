@@ -462,6 +462,7 @@ export const getMyProfile = async (req, res) => {
     // Find clients assigned to this staff member
     const assignedClients = await Client.find({
       assignedStaff: staffId,
+        isArchived: { $ne: true },
     })
       .select(
         "clientId fullName email phone status address assignedStaff"
@@ -588,6 +589,7 @@ export const getMyClients = async (req, res) => {
 
     const clients = await Client.find({
       assignedStaff: staffId,
+        isArchived: { $ne: true },
     })
       .select(
         "clientId fullName email phone status dateOfBirth gender condition service address assignedStaff"
@@ -623,6 +625,7 @@ export const getStaffDashboard = async (req, res) => {
     const assignedClients = await Client.find({
       assignedStaff: staffId,
       status: "Active",
+        isArchived: { $ne: true },
     })
       .select(
         "clientId fullName email phone dateOfBirth gender address status assignedStaff"
@@ -796,23 +799,41 @@ export const updateStaff = async (req, res) => {
 
 // @route  DELETE /api/staff/:id
 // @access Admin
+// export const deleteStaff = async (req, res) => {
+//   try {
+//     const staff = await User.findOneAndDelete({ _id: req.params.id, role: "staff" });
+
+//     if (!staff) {
+//       return res.status(404).json({ message: "Staff not found" });
+//     }
+
+//     return res.status(200).json({
+//       message: "Staff deleted",
+//       staff: { _id: staff._id, fullName: staff.fullName },
+//     });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
 export const deleteStaff = async (req, res) => {
   try {
-    const staff = await User.findOneAndDelete({ _id: req.params.id, role: "staff" });
+    const staff = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "staff", isArchived: { $ne: true } },
+      {
+        isArchived: true,
+        archivedAt: new Date(),
+        archivedBy: req.user._id,
+        status: "inactive", // blocks login
+      },
+      { new: true }
+    );
 
-    if (!staff) {
-      return res.status(404).json({ message: "Staff not found" });
-    }
-
-    return res.status(200).json({
-      message: "Staff deleted",
-      staff: { _id: staff._id, fullName: staff.fullName },
-    });
+    if (!staff) return res.status(404).json({ message: "Staff not found" });
+    return res.status(200).json({ message: "Staff archived" });
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 // @route  POST /api/staff/:id/documents
 // @access Admin
 // export const uploadStaffDocument = async (req, res) => {

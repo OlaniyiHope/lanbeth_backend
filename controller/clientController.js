@@ -153,7 +153,7 @@ export const getClients = async (req, res) => {
   try {
     const { search, status, page = 1, limit = 20 } = req.query;
 
-    const query = {};
+ const query = { isArchived: { $ne: true } };
 
     // Staff only ever see clients assigned to them; admin sees everyone.
     if (req.user.role === "staff") {
@@ -313,38 +313,62 @@ export const updateClient = async (
 
 // @route DELETE /api/clients/:id
 // @access Admin
-export const deleteClient = async (
-  req,
-  res
-) => {
+// export const deleteClient = async (
+//   req,
+//   res
+// ) => {
+//   try {
+//     const client =
+//       await Client.findByIdAndDelete(
+//         req.params.id
+//       );
+
+//     if (!client) {
+//       return res.status(404).json({
+//         message: "Client not found",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       message: "Client deleted",
+//     });
+//   } catch (err) {
+//     console.error(
+//       "Delete client error:",
+//       err
+//     );
+
+//     return res.status(500).json({
+//       message: "Server error",
+//       error: err.message,
+//     });
+//   }
+// };
+export const deleteClient = async (req, res) => {
   try {
-    const client =
-      await Client.findByIdAndDelete(
-        req.params.id
-      );
-
-    if (!client) {
-      return res.status(404).json({
-        message: "Client not found",
-      });
-    }
-
-    return res.status(200).json({
-      message: "Client deleted",
-    });
-  } catch (err) {
-    console.error(
-      "Delete client error:",
-      err
+    const client = await Client.findOneAndUpdate(
+      { _id: req.params.id, isArchived: { $ne: true } },
+      {
+        isArchived: true,
+        archivedAt: new Date(),
+        archivedBy: req.user._id,
+      },
+      { new: true }
     );
 
+    if (!client) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+
+    return res.status(200).json({ message: "Client archived" });
+  } catch (err) {
+    console.error("Archive client error:", err);
     return res.status(500).json({
       message: "Server error",
       error: err.message,
     });
   }
 };
-
 // @route POST /api/clients/:id/documents
 // @access Admin
 // @route POST /api/clients/:id/documents
