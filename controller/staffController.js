@@ -777,26 +777,55 @@ export const getStaffById = async (req, res) => {
 
 // @route  PUT /api/staff/:id
 // @access Admin
+// export const updateStaff = async (req, res) => {
+//   try {
+//     const { password, ...updateData } = req.body;
+
+//     const staff = await User.findOneAndUpdate(
+//       { _id: req.params.id, role: "staff" },
+//       updateData,
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!staff) {
+//       return res.status(404).json({ message: "Staff not found" });
+//     }
+
+//     return res.status(200).json({ message: "Staff updated", staff });
+//   } catch (err) {
+//     return res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
 export const updateStaff = async (req, res) => {
   try {
-    const { password, ...updateData } = req.body;
+    const { password, _id, id, __v, createdAt, updatedAt, ...updateData } = req.body;
 
-    const staff = await User.findOneAndUpdate(
-      { _id: req.params.id, role: "staff" },
-      updateData,
-      { new: true, runValidators: true }
-    );
+    const staff = await User.findOne({ _id: req.params.id, role: "staff" });
 
     if (!staff) {
       return res.status(404).json({ message: "Staff not found" });
     }
 
-    return res.status(200).json({ message: "Staff updated", staff });
+    Object.assign(staff, updateData);
+
+    if (password) {
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      }
+      staff.password = password; // hashed by the pre-save hook
+    }
+
+    await staff.save(); // runs validators and the pre-save hook
+
+    const safe = staff.toObject();
+    delete safe.password;
+
+    return res.status(200).json({ message: "Staff updated", staff: safe });
   } catch (err) {
+    console.error("Update staff error:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 // @route  DELETE /api/staff/:id
 // @access Admin
 // export const deleteStaff = async (req, res) => {

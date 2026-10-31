@@ -151,6 +151,7 @@ const clientSchema = new mongoose.Schema(
     region: { type: String },
     maritalStatus: { type: String },
     keySafeCode: { type: String },
+    localAuthorityNo: { type: String, trim: true, index: true },
     communicationPreference: { type: String },
     doctor: { type: String },
     status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
