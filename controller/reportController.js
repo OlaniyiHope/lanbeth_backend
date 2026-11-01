@@ -44,50 +44,83 @@ export const getReportCount = async (req, res) => {
     });
   }
 };
-export const submitReport = async (req, res) => {
-  try {
-    const client = await Client.findById(req.params.id);
+// export const submitReport = async (req, res) => {
+//   try {
+//     const client = await Client.findById(req.params.id);
 
-    if (!client) {
-      return res.status(404).json({
-        message: "Client not found",
-      });
-    }
+//     if (!client) {
+//       return res.status(404).json({
+//         message: "Client not found",
+//       });
+//     }
 
-    const { reportDate } = req.body;
+//     const { reportDate } = req.body;
 
-    if (!reportDate) {
-      return res.status(400).json({
-        message: "reportDate is required",
-      });
-    }
+//     if (!reportDate) {
+//       return res.status(400).json({
+//         message: "reportDate is required",
+//       });
+//     }
 
-    const report = await Report.create({
-      ...req.body,
-      client: req.params.id,
-      staff: req.user._id,
-    });
+//     const report = await Report.create({
+//       ...req.body,
+//       client: req.params.id,
+//       staff: req.user._id,
+//     });
 
-    console.log("REPORT CREATED:", report._id);
+//     console.log("REPORT CREATED:", report._id);
 
-    return res.status(201).json({
-      message: "Report submitted",
-      report,
-    });
+//     return res.status(201).json({
+//       message: "Report submitted",
+//       report,
+//     });
 
-  } catch (err) {
-    console.error("SUBMIT REPORT ERROR:", err);
+//   } catch (err) {
+//     console.error("SUBMIT REPORT ERROR:", err);
 
-    return res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
-  }
-};
+//     return res.status(500).json({
+//       message: "Server error",
+//       error: err.message,
+//     });
+//   }
+// };
 // @route  GET /api/clients/:id/reports?date=YYYY-MM-DD
 // @access Admin, Staff
 // Returns all reports for that client on a given date (multiple staff may
 // have submitted separately that day).
+export const submitReport = async (req, res) => {
+  try {
+    const client = await Client.findOne({
+      _id: req.params.id,
+      isArchived: { $ne: true },
+    });
+
+    if (!client) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+
+    const { reportDate } = req.body;
+    if (!reportDate) {
+      return res.status(400).json({ message: "reportDate is required" });
+    }
+
+    // Never trust these from the request body
+    const { staff, client: _c, submittedByRole, ...body } = req.body;
+
+    const report = await Report.create({
+      ...body,
+      client: req.params.id,
+      staff: req.user._id,
+      submittedByRole: req.user.role === "admin" ? "admin" : "staff",
+    });
+
+    return res.status(201).json({ message: "Report submitted", report });
+  } catch (err) {
+    console.error("SUBMIT REPORT ERROR:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 export const getReportsByDate = async (req, res) => {
   try {
     const { date } = req.query;

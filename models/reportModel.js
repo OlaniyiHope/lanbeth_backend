@@ -4,6 +4,7 @@ const incidentSchema = new mongoose.Schema(
   {
     type: { type: String, default: "" },
     lastedMinutes: { type: String, default: "" },
+    
     location: { type: String, default: "" },
     locationDetails: { type: String, default: "" },
     injured: { type: String, default: "" },
@@ -34,6 +35,11 @@ const reportSchema = new mongoose.Schema(
       required: true,
     },
 
+submittedByRole: {
+  type: String,
+  enum: ["staff", "admin"],
+  default: "staff",
+},
     reportDate: {
       type: Date,
       required: true,
