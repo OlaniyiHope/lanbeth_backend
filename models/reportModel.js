@@ -159,10 +159,11 @@ submittedByRole: {
 
     generalNotes: { type: String, default: "" },
 
-    uploadedReportFile: {
-      fileName: { type: String, default: "" },
-      fileUrl: { type: String, default: "" },
-    },
+   uploadedReportFile: {
+  fileName: { type: String, default: "" },
+  fileKey: { type: String, default: "" },
+  fileUrl: { type: String, default: "" },
+},
   },
   {
     timestamps: true,

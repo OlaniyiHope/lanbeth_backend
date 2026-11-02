@@ -46,13 +46,19 @@ import {
   getMyReports,
   deleteReport,
 } from "../controller/reportController.js";
+import uploadReportDocument from "../middleware/uploadReportDocument.js";
 
 const router = express.Router({ mergeParams: true });
 
 router.use(protect);
 
-router.post("/", authorize("admin", "staff"), submitReport);
-
+// router.post("/", authorize("admin", "staff"), submitReport);
+router.post(
+  "/",
+  authorize("admin", "staff"),
+  uploadReportDocument.single("file"),
+  submitReport
+);
 router.get("/", authorize("admin", "staff"), (req, res, next) => {
   if (req.query.date) {
     return getReportsByDate(req, res, next);

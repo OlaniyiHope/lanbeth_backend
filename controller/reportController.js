@@ -1,6 +1,32 @@
+import "dotenv/config";
 import Report from "../models/reportModel.js";
 import Client from "../models/clientModel.js";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+async function withSignedUrl(report) {
+  const obj = report.toObject();
+  const key = obj.uploadedReportFile?.fileKey;
+  if (key) {
+    try {
+      obj.uploadedReportFile.fileUrl = await getSignedUrl(
+        s3,
+        new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: key }),
+        { expiresIn: 3600 }
+      );
+    } catch (err) {
+      console.error("SIGN URL ERROR:", err.message);
+    }
+  }
+  return obj;
+}
 // @route  POST /api/clients/:id/reports
 // @access Staff, Admin
 // Note: per spec, "different staff must be able to submit report more than
@@ -90,6 +116,8 @@ export const getReportCount = async (req, res) => {
 // have submitted separately that day).
 export const submitReport = async (req, res) => {
   try {
+     console.log("REPORT FILE:", req.file);   // add this line
+
     const client = await Client.findOne({
       _id: req.params.id,
       isArchived: { $ne: true },
@@ -105,14 +133,21 @@ export const submitReport = async (req, res) => {
     }
 
     // Never trust these from the request body
-    const { staff, client: _c, submittedByRole, ...body } = req.body;
+const { staff, client: _c, submittedByRole, uploadedReportFile, ...body } = req.body;
 
-    const report = await Report.create({
-      ...body,
-      client: req.params.id,
-      staff: req.user._id,
-      submittedByRole: req.user.role === "admin" ? "admin" : "staff",
-    });
+const report = await Report.create({
+  ...body,
+  client: req.params.id,
+  staff: req.user._id,
+  submittedByRole: req.user.role === "admin" ? "admin" : "staff",
+  ...(req.file && {
+    uploadedReportFile: {
+      fileName: req.file.originalname,
+      fileKey: req.file.key,
+      fileUrl: req.file.location,
+    },
+  }),
+});
 
     return res.status(201).json({ message: "Report submitted", report });
   } catch (err) {
@@ -139,8 +174,9 @@ export const getReportsByDate = async (req, res) => {
     })
       .populate("staff", "fullName role")
       .sort({ createdAt: -1 });
+   const signedReports = await Promise.all(reports.map(withSignedUrl));
 
-    return res.status(200).json({ date, reports });
+    return res.status(200).json({ date,   reports: signedReports, });
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
@@ -164,15 +200,18 @@ export const getAllReportDates = async (req, res) => {
       Report.countDocuments({ client: req.params.id }),
       Report.distinct("reportDate", { client: req.params.id }),
     ]);
+   const signedReports = await Promise.all(reports.map(withSignedUrl));
 
     return res.status(200).json({
-      reports,
+      // reports,
+        reports: signedReports,
       total,
       page: Number(page),
       totalPages: Math.ceil(total / Number(limit)),
       availableDates: distinctDates,
     });
   } catch (err) {
+     console.error("GET REPORTS ERROR:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
