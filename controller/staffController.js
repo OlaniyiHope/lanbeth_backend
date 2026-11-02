@@ -3,6 +3,7 @@
 import User from "../models/authModel.js";
 import Client from "../models/clientModel.js";
 import Report from "../models/reportModel.js";
+import Notification from "../models/notificationModel.js";
 import {
   deleteFromS3,
   getS3SignedUrl,

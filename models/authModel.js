@@ -39,7 +39,10 @@ const userSchema = new mongoose.Schema(
     postcode: { type: String },
     region: { type: String },
     profilePhoto: { type: String }, 
-    gender: { type: String, enum: ["Male", "Female"] },
+   gender: {
+  type: String,
+  enum: ["Male", "Female", "Other", "Prefer not to say"],
+},
     dateOfBirth: { type: Date },
     maritalStatus: { type: String },
     religion: { type: String },

@@ -16,6 +16,7 @@ import cors from "cors";
 import { S3 } from "@aws-sdk/client-s3";
 import connectDB from "./config/db2.js";
 import authRoutes from "./routes/authRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import clientRoute from "./routes/clientRoute.js";
 import archiveRoutes from "./routes/archiveRoutes.js";
 import reportRoute from "./routes/reportRoute.js";
@@ -74,6 +75,7 @@ app.use("/api/staff", staffRoute);
 app.use("/api/policies", policyRoute);
 
 
+app.use("/api/notifications", notificationRoutes);
 app.get("/", (req, res) => {
   res.json({ status: "LanbethCare API running" });
 });
