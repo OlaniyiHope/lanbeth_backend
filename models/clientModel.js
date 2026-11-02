@@ -152,6 +152,15 @@ const clientSchema = new mongoose.Schema(
     maritalStatus: { type: String },
     keySafeCode: { type: String },
     localAuthorityNo: { type: String, trim: true, index: true },
+    // Council section
+councilServiceUserId: { type: String, trim: true, index: true },
+councilCareProviderId: { type: String, trim: true, index: true },
+serviceType: { type: String, trim: true },
+serviceLevel: { type: String, trim: true },
+
+// Used by the client table
+authority: { type: String, trim: true },
+foodAllergy: { type: String, trim: true },
     communicationPreference: { type: String },
     doctor: { type: String },
     status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
