@@ -85,7 +85,7 @@
 //     ],
 
 //     favoriteActivities: { type: String },
-// pronouns: { type: String, enum: ["He", "She", "They", ""], default: "" },
+// pronoun: { type: String, enum: ["He", "She", "They", ""], default: "" },
 //     dailyCare: {
 //       bedtime: String,
 //       bathTime: String,
@@ -150,7 +150,7 @@ const clientSchema = new mongoose.Schema(
     phone: { type: String },
     dateOfBirth: { type: Date },
     gender: { type: String, enum: ["Male", "Female", "Other"] },
-    pronouns: { type: String, enum: ["He", "She", "They", ""], default: "" },
+    pronoun: { type: String, enum: ["He", "She", "They", ""], default: "" },
     sexuality: {
       type: String,
       enum: ["Heterosexual", "Homosexual", "Bisexual", "Pansexual", "Asexual", "Prefer not to say", "Other", ""],
@@ -260,6 +260,7 @@ category: {
       oxygen: { type: String, enum: ["Yes", "No", ""], default: "" },
       onCatheter: { type: Boolean, default: false },
       teamInvolvement: [{ type: String }],
+      customFields: [{ label: String, value: String }],
     },
 
     medications: [

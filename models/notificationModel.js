@@ -16,6 +16,7 @@ const notificationSchema = new mongoose.Schema(
     title: { type: String, required: true },
     message: { type: String, required: true },
 sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+noticeId: { type: String, index: true },
     // The user whose document this is about
     subject: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     documentId: { type: mongoose.Schema.Types.ObjectId },

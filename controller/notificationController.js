@@ -228,6 +228,7 @@ export const sendNotice = async (req, res) => {
       recipient: r._id,
       sender: req.user._id,
       type: "notice",
+        noticeId,
       title: title.trim(),
       message: message.trim(),
       dedupeKey: `notice:${noticeId}:${r._id}`,
@@ -397,6 +398,59 @@ export const markAllNotificationsRead = async (req, res) => {
 
     return res.status(200).json({ message: "All marked as read", updated: result.modifiedCount });
   } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+
+// @route  GET /api/notifications/sent
+// @access Admin only
+export const getSentNotices = async (req, res) => {
+  try {
+    const notices = await Notification.aggregate([
+      {
+        $match: {
+          sender: new mongoose.Types.ObjectId(req.user._id),
+          type: "notice",
+          noticeId: { $exists: true },
+        },
+      },
+      {
+        $group: {
+          _id: "$noticeId",
+          title: { $first: "$title" },
+          message: { $first: "$message" },
+          createdAt: { $first: "$createdAt" },
+          recipientIds: { $push: "$recipient" },
+          total: { $sum: 1 },
+          readCount: { $sum: { $cond: ["$read", 1, 0] } },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $limit: 100 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "recipientIds",
+          foreignField: "_id",
+          as: "recipients",
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          message: 1,
+          createdAt: 1,
+          total: 1,
+          readCount: 1,
+          "recipients.fullName": 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({ notices });
+  } catch (err) {
+    console.error("GET SENT NOTICES ERROR:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };

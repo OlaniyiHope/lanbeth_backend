@@ -43,7 +43,7 @@ gender: {
   type: String,
   enum: ["Male", "Female", "Other", "Prefer not to say", ""],
 },
-pronouns: { type: String, enum: ["He", "She", "They", ""], default: "" },
+pronoun: { type: String, enum: ["He", "She", "They", ""], default: "" },
 sexuality: {
   type: String,
   enum: ["Heterosexual", "Homosexual", "Bisexual", "Pansexual", "Asexual", "Prefer not to say", "Other", ""],

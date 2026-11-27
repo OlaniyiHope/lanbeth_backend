@@ -5,7 +5,8 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   getBirthdays,
-  sendNotice
+  sendNotice,
+  getSentNotices
 } from "../controller/notificationController.js";
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.use(protect, authorize("admin", "staff"));
 router.post("/notice", authorize("admin"), sendNotice);
 router.get("/", getNotifications);
+router.get("/sent", authorize("admin"), getSentNotices);
 router.get("/birthdays", getBirthdays);
 router.patch("/read-all", markAllNotificationsRead);
 router.patch("/:id/read", markNotificationRead);
