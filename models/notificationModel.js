@@ -10,12 +10,12 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["document_expiring", "document_expired", "birthday"],
+      enum: ["document_expiring", "document_expired", "birthday", "notice"],
       required: true,
     },
     title: { type: String, required: true },
     message: { type: String, required: true },
-
+sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     // The user whose document this is about
     subject: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     documentId: { type: mongoose.Schema.Types.ObjectId },

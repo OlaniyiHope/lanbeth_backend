@@ -192,7 +192,11 @@ const clientSchema = new mongoose.Schema(
     isArchived: { type: Boolean, default: false, index: true },
     archivedAt: { type: Date },
     archivedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-
+category: {
+  type: String,
+  enum: ["keywork", "bedroom", "finance", "feedback", "education", "ipa", null],
+  default: null,
+},
     // Admission section (fixed fields plus custom "+" fields)
     admission: {
       startDate: Date,

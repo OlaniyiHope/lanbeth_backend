@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import User from "../models/authModel.js";
 import Notification from "../models/notificationModel.js";
 import Client from "../models/clientModel.js";
+import crypto from "crypto";
 const EXPIRY_WINDOW_DAYS = 30;
 const SYNC_THROTTLE_MS = 5 * 60 * 1000; // avoid re-scanning on every poll
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -181,6 +182,70 @@ export async function getUpcomingBirthdays(today = startOfUtcDay(new Date())) {
  * Admins are notified about everyone. A client's assigned staff member is
  * notified about that client. A staff member is notified about their own birthday.
  */
+
+// @route  POST /api/notifications/notice
+// @access Admin only
+export const sendNotice = async (req, res) => {
+  try {
+    const { title, message, recipientIds, sendToAll } = req.body;
+
+    if (!title?.trim() || !message?.trim()) {
+      return res.status(400).json({ message: "Title and message are required." });
+    }
+
+    let recipients;
+
+    if (sendToAll) {
+      recipients = await User.find({
+        role: "staff",
+        status: "active",
+        isArchived: { $ne: true },
+      })
+        .select("_id")
+        .lean();
+    } else {
+      if (!Array.isArray(recipientIds) || recipientIds.length === 0) {
+        return res.status(400).json({ message: "Choose at least one staff member." });
+      }
+      recipients = await User.find({
+        _id: { $in: recipientIds },
+        role: "staff",
+        isArchived: { $ne: true },
+      })
+        .select("_id")
+        .lean();
+    }
+
+    if (recipients.length === 0) {
+      return res.status(400).json({ message: "No valid staff recipients found." });
+    }
+
+    // One id per notice, so each recipient's dedupeKey is unique
+    const noticeId = crypto.randomUUID();
+    const now = new Date();
+
+    const docs = recipients.map((r) => ({
+      recipient: r._id,
+      sender: req.user._id,
+      type: "notice",
+      title: title.trim(),
+      message: message.trim(),
+      dedupeKey: `notice:${noticeId}:${r._id}`,
+      read: false,
+      createdAt: now,
+    }));
+
+    await Notification.insertMany(docs);
+
+    return res.status(201).json({
+      message: "Notice sent.",
+      sent: docs.length,
+    });
+  } catch (err) {
+    console.error("SEND NOTICE ERROR:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
 export async function syncBirthdayNotifications({ force = false } = {}) {
   if (!force && Date.now() - lastBirthdaySyncAt < SYNC_THROTTLE_MS) return 0;
 
